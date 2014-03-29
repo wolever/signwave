@@ -1,7 +1,7 @@
 gestureui
 =========
 
-project for swtolib
+project for #swtolib14
 
 Missing the WebcamSwiper submodule? run
 ```
