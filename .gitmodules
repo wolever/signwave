@@ -1,3 +1,6 @@
 [submodule "WebcamSwiper"]
 	path = WebcamSwiper
 	url = https://github.com/iambrandonn/WebcamSwiper.git
+[submodule "mocap_js"]
+	path = mocap_js
+	url = https://github.com/pci/mocap_js.git
