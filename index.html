@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <title>SignWave</title>
+        <link rel="stylesheet" href="styles/main.css"/>
+    </head>
+    <body>
+    
+        <video id="webcam" autoplay width="640" height="480"></video>
+        
+        <canvas id="canvas-source" width="640" height="480"></canvas>
+        <canvas id="canvas-blended" width="640" height="480"></canvas>
+    
+        <div style="position: relative;">
+            <div class="swipeMenu" id="menu1"></div>
+            <div class="swipeMenu" id="menu2"></div>
+            <div class="swipeMenu" id="menu3"></div>
+            <div class="swipeMenu" id="menu4"></div>
+        </div>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script src="js/motion.js"></script>
+        <script src="js/gestureui.js"></script>
+    </body>
+</html>

@@ -1,0 +1,59 @@
+body {
+	font-family: Helvetica, Arial, "sans serif";
+	font-size: 12px;
+}
+
+video, #info, #description {
+	display: none;
+}
+
+#video-demo {
+	display: none;
+	position: absolute;
+	top: 150px;
+	left: 10px;
+}
+
+#canvas-source {
+	display: none;
+	position: absolute;
+	top: 40px;
+	left: 10px;
+}
+
+#canvas-blended {
+	display: none;
+	position: absolute;
+	top: 407px;
+	left: 500px;
+	width: 150px;
+	height: 113px;
+}
+
+.swipeMenu {
+    position: absolute;
+    display: none;
+    width: 80px;
+    height: 100px;
+    background: white;
+}
+
+#menu1 {
+    top: 120px;
+    left: 0px;
+}
+
+#menu2 {
+    top: 120px;
+    left: 570px;
+}
+
+#menu3 {
+    top: 320px;
+    left: 0px;
+}
+
+#menu4 {
+    top: 320px;
+    left: 570px;
+}
