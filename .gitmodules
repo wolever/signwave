@@ -1,0 +1,3 @@
+[submodule "WebcamSwiper"]
+	path = WebcamSwiper
+	url = https://github.com/iambrandonn/WebcamSwiper.git
