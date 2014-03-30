@@ -1,4 +1,5 @@
 (function() {
+    var demoMode = true;
 
 	function hasGetUserMedia() {
 		// Note: Opera builds are unprefixed.
@@ -92,12 +93,20 @@
 		start();
 	}
 
+    var blendFramesCount = demoMode? 30 : 6;
+    var blendFramesMultiplier = demoMode? 0.1 : 0.4;
+    var blendFramesCur = -1;
+    var blendFrames = [];
+    var blendedData;
+
 	function start() {
 		$(canvasSource).show();
 		$(canvasBlended).show();
 		// $(".xylo").show();
         // menu options
-        $(".swipeMenu").show();
+        if (!demoMode) {
+            $(".swipeMenu").show();
+        }
 		$("#message").hide();
 		$("#description").show();
 		update();
@@ -117,16 +126,42 @@
 	function blend() {
 		var width = canvasSource.width;
 		var height = canvasSource.height;
-		// get webcam image data
+        if (!blendedData) {
+            blendedData = contextSource.createImageData(width, height)
+        }
+
 		var sourceData = contextSource.getImageData(0, 0, width, height);
+
 		// create an image if the previous image doesn’t exist
-		if (!lastImageData) lastImageData = contextSource.getImageData(0, 0, width, height);
+		if (!lastImageData) {
+            lastImageData = contextSource.getImageData(0, 0, width, height);
+        }
+
+        var blendFramesNext = (blendFramesCur + 1) % blendFramesCount;
+        var deadImageData = blendFrames[blendFramesNext];
+        if (!deadImageData) {
+            deadImageData = contextSource.getImageData(0, 0, width, height);
+            blendFrames[blendFramesNext] = deadImageData;
+        }
+
 		// create a ImageData instance to receive the blended result
-		var blendedData = contextSource.createImageData(width, height);
 		// blend the 2 images
-		differenceAccuracy(blendedData.data, sourceData.data, lastImageData.data);
+		differenceAccuracy(
+            blendedData.data,
+            sourceData.data,
+            lastImageData.data,
+            deadImageData.data,
+            blendFramesMultiplier
+        );
+
+        blendFramesCur = blendFramesNext;
+
 		// draw the result in a canvas
-		contextBlended.putImageData(blendedData, 0, 0);
+        if (demoMode) {
+            contextSource.putImageData(blendedData, 0, 0);
+        } else {
+            contextBlended.putImageData(blendedData, 0, 0);
+        }
 		// store the current webcam image
 		lastImageData = sourceData;
 	}
@@ -134,10 +169,6 @@
 	function fastAbs(value) {
 		// funky bitwise, equal Math.abs
 		return (value ^ (value >> 31)) - (value >> 31);
-	}
-
-	function threshold(value) {
-		return (value > 0x15) ? 0xFF : 0;
 	}
 
 	function difference(target, data1, data2) {
@@ -153,17 +184,28 @@
 		}
 	}
 
-	function differenceAccuracy(target, data1, data2) {
+    function fastcap(x) {
+        return (
+            x < 0? 0 :
+            x > 0xFF? 0xFF :
+            x
+        );
+    }
+
+	function differenceAccuracy(target, data1, data2, toRemove, multiplier) {
+        var high = parseInt(0xFF * multiplier);
 		if (data1.length != data2.length) return null;
+        var x;
 		var i = 0;
 		while (i < (data1.length * 0.25)) {
 			var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
 			var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
-			var diff = threshold(fastAbs(average1 - average2));
-			target[4*i] = diff;
-			target[4*i+1] = diff;
-			target[4*i+2] = diff;
-			target[4*i+3] = 0xFF;
+			var diff = (fastAbs(average1 - average2) > 0x10)? 0xFF : 0;
+            var incr = diff && high;
+			x = 4*i;   target[x] = toRemove[x] = fastcap(target[x] + incr - toRemove[x]);
+			x = 4*i+1; target[x] = toRemove[x] = fastcap(target[x] + incr - toRemove[x]);
+			x = 4*i+2; target[x] = toRemove[x] = fastcap(target[x] + incr - toRemove[x]);
+			x = 4*i+3; target[x] = toRemove[x] = 0xFF;
 			++i;
 		}
 	}
