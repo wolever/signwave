@@ -114,19 +114,28 @@
 		contextSource.drawImage(video, 0, 0, video.width, video.height);
 	}
 
+
+    var blendedData;
+
 	function blend() {
 		var width = canvasSource.width;
 		var height = canvasSource.height;
 		// get webcam image data
 		var sourceData = contextSource.getImageData(0, 0, width, height);
+
 		// create an image if the previous image doesn’t exist
-		if (!lastImageData) lastImageData = contextSource.getImageData(0, 0, width, height);
-		// create a ImageData instance to receive the blended result
-		var blendedData = contextSource.createImageData(width, height);
+		if (!lastImageData)
+            lastImageData = contextSource.getImageData(0, 0, width, height);
+
+        if (!blendedData)
+            blendedData = contextSource.createImageData(width, height);
+
 		// blend the 2 images
 		differenceAccuracy(blendedData.data, sourceData.data, lastImageData.data);
+
 		// draw the result in a canvas
 		contextBlended.putImageData(blendedData, 0, 0);
+
 		// store the current webcam image
 		lastImageData = sourceData;
 	}
@@ -134,10 +143,6 @@
 	function fastAbs(value) {
 		// funky bitwise, equal Math.abs
 		return (value ^ (value >> 31)) - (value >> 31);
-	}
-
-	function threshold(value) {
-		return (value > 0x15) ? 0xFF : 0;
 	}
 
 	function difference(target, data1, data2) {
@@ -153,18 +158,29 @@
 		}
 	}
 
+    function constrain(x) {
+        return (
+            x < 0? 0 :
+            x > 0xFF? 0xFF :
+            x
+        )
+    }
+
 	function differenceAccuracy(target, data1, data2) {
 		if (data1.length != data2.length) return null;
+        var x;
 		var i = 0;
-		while (i < (data1.length * 0.25)) {
-			var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
-			var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
-			var diff = threshold(fastAbs(average1 - average2));
-			target[4*i] = diff;
-			target[4*i+1] = diff;
-			target[4*i+2] = diff;
-			target[4*i+3] = 0xFF;
-			++i;
+        var maxI = data1.length * 0.25;
+		for (i = 0; i < maxI; i += 1) {
+            var i4 = i * 4;
+			var average1 = (data1[i4] + data1[i4+1] + data1[i4+2]) / 3;
+			var average2 = (data2[i4] + data2[i4+1] + data2[i4+2]) / 3;
+            var incr = (fastAbs(average1 - average2) > 0x15)? 0x70 : -0x20;
+            var val = constrain(target[i4] + incr);
+			x = i4;   target[x] = val;
+			x = i4+1; target[x] = val;
+			x = i4+2; target[x] = val;
+			x = i4+3; target[x] = 0xFF;
 		}
 	}
 
